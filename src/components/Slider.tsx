@@ -3,24 +3,21 @@ import { type CSSProperties } from "react";
 import styles from "./Slider.module.css";
 
 interface SliderProps {
-	className?: string;
-	title?: string;
-	warning?: string;
+	inPopup?: boolean;
 	minValue?: number;
 	maxValue?: number;
 	minorStep?: number;
 	majorStep?: number;
 	value?: number;
-	leftIconType?: Parameters<typeof Icon>[0]["type"];
-	rightIconType?: Parameters<typeof Icon>[0]["type"];
-	onChange: (nextValue: number) => void;
+	leftIconType?: IconType;
+	rightIconType?: IconType;
+	onChange: (newValue: number) => void;
+	onCommit?: (oldValue: number, newValue: number) => void;
 	onDisplay?: (value: number) => string;
 }
 
 export default function Slider({
-	className = "",
-	title = "",
-	warning = "",
+	inPopup = false,
 	minValue = -50,
 	maxValue = 50,
 	minorStep = 1,
@@ -29,15 +26,96 @@ export default function Slider({
 	leftIconType = "moon",
 	rightIconType = "sun",
 	onChange,
-	onDisplay = (value) => `${value} %`,
+	onCommit = () => {},
+	onDisplay = (value) => `${value}%`,
 }: SliderProps) {
+	return (
+		<div className={styles.slider}>
+			<button
+				className={clsx(inPopup && styles.popupButton)}
+				onPointerDown={() => {
+					const newValue = clamp(
+						minValue,
+						(Math.ceil(value / majorStep) - 1) * majorStep,
+						maxValue,
+					);
+					if (value !== newValue) {
+						onChange(newValue);
+						onCommit(value, newValue);
+					}
+				}}
+			>
+				<Icon
+					type={leftIconType}
+					size={inPopup ? "small" : "default"}
+				/>
+			</button>
+			{inPopup ? (
+				<div className={styles.popupDisplay}>{onDisplay(value)}</div>
+			) : (
+				<SliderTrack
+					minValue={minValue}
+					maxValue={maxValue}
+					minorStep={minorStep}
+					value={value}
+					onChange={onChange}
+					onCommit={onCommit}
+					onDisplay={onDisplay}
+				/>
+			)}
+			<button
+				className={clsx(inPopup && styles.popupButton)}
+				onPointerDown={() => {
+					const newValue = clamp(
+						minValue,
+						(Math.floor(value / majorStep) + 1) * majorStep,
+						maxValue,
+					);
+					if (value !== newValue) {
+						onChange(newValue);
+						onCommit(value, newValue);
+					}
+				}}
+			>
+				<Icon
+					type={rightIconType}
+					size={inPopup ? "small" : "default"}
+				/>
+			</button>
+		</div>
+	);
+}
+
+interface SliderTrackProps {
+	minValue: number;
+	maxValue: number;
+	minorStep: number;
+	value: number;
+	onChange: (newValue: number) => void;
+	onCommit: (oldValue: number, newValue: number) => void;
+	onDisplay: (value: number) => string;
+}
+
+function SliderTrack({
+	minValue,
+	maxValue,
+	minorStep,
+	value,
+	onChange,
+	onCommit,
+	onDisplay,
+}: SliderTrackProps) {
 	const rafRef = useRef<number | null>(null);
-	const rectRef = useRef<DOMRect | null>(null);
 	const trackRef = useRef<HTMLDivElement | null>(null);
-	const dragOffsetRef = useRef({ offset: 0, thumbWidth: 0 });
+	const dragRef = useRef({
+		rect: null as DOMRect | null,
+		offset: 0,
+		thumbWidth: 0,
+		startValue: value,
+		transientValue: value,
+	});
 	const [isDragging, setIsDragging] = useState(false);
 	const [transientValue, setTransientValue] = useState(value);
-	const currentValue = isDragging ? transientValue : value;
 
 	useEffect(
 		() => () => {
@@ -46,114 +124,95 @@ export default function Slider({
 		[],
 	);
 
-	const onDown = (): void => {
-		const newValue = clamp(
-			minValue,
-			(Math.ceil(value / majorStep) - 1) * majorStep,
-			maxValue,
-		);
-		if (newValue !== value) onChange(newValue);
-	};
+	const displayValue = isDragging ? transientValue : value;
 
-	const onDrag = (clientX: number): void => {
-		const rect =
-			rectRef.current ?? trackRef.current?.getBoundingClientRect();
-		if (!rect) return;
+	const onDragStop = useCallback(
+		(e: React.PointerEvent<HTMLDivElement>): void => {
+			if (e.currentTarget.hasPointerCapture(e.pointerId))
+				e.currentTarget.releasePointerCapture(e.pointerId);
+			const state = dragRef.current;
+			state.rect = null;
+			setIsDragging(false);
+			if (state.startValue !== state.transientValue) {
+				onChange(state.transientValue);
+				onCommit(state.startValue, state.transientValue);
+			}
+		},
+		[onChange, onCommit],
+	);
 
-		const { offset, thumbWidth } = dragOffsetRef.current;
-		const targetLeft = clientX - offset - rect.left;
-		const availableWidth = rect.width - thumbWidth;
-		const percent = clamp(0, targetLeft / availableWidth, 1);
+	const onDrag = useCallback(
+		(e: React.PointerEvent<HTMLDivElement>): void => {
+			if (!e.currentTarget.hasPointerCapture(e.pointerId)) return;
+			if (e.buttons === 0) return onDragStop(e);
 
-		const newValue = clamp(
-			minValue,
-			Math.round(
-				(percent * (maxValue - minValue) + minValue) / minorStep,
-			) * minorStep,
-			maxValue,
-		);
-		if (newValue !== currentValue) {
-			if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
-			rafRef.current = requestAnimationFrame(() => {
-				setTransientValue(newValue);
-				onChange(newValue);
-			});
-		}
-	};
+			const state = dragRef.current;
+			const rect =
+				state.rect ?? trackRef.current?.getBoundingClientRect();
+			if (!rect) return;
 
-	const onDragStop = (): void => {
-		rectRef.current = null;
-		setIsDragging(false);
-	};
+			const newValue = clamp(
+				minValue,
+				Math.round(
+					(clamp(
+						0,
+						(e.clientX - state.offset - rect.left) /
+							(rect.width - state.thumbWidth),
+						1,
+					) *
+						(maxValue - minValue) +
+						minValue) /
+						minorStep,
+				) * minorStep,
+				maxValue,
+			);
 
-	const onUp = (): void => {
-		const newValue = clamp(
-			minValue,
-			(Math.floor(value / majorStep) + 1) * majorStep,
-			maxValue,
-		);
-		if (newValue !== value) onChange(newValue);
-	};
+			if (newValue !== state.transientValue) {
+				if (rafRef.current !== null)
+					cancelAnimationFrame(rafRef.current);
+				rafRef.current = requestAnimationFrame(() => {
+					state.transientValue = newValue;
+					setTransientValue(newValue);
+					onChange(newValue);
+				});
+			}
+		},
+		[minValue, maxValue, minorStep, onChange, onDragStop],
+	);
 
 	return (
-		<div className={clsx(styles.slider, className)}>
-			<div className={styles.body}>
-				<button onPointerDown={onDown}>
-					<Icon type={leftIconType} />
-				</button>
-				<div
-					ref={trackRef}
-					className={clsx(
-						styles.track,
-						isDragging && styles.dragging,
-					)}
-					style={
-						{
-							"--percent":
-								(value - minValue) / (maxValue - minValue),
-						} as CSSProperties
-					}
-				>
-					<div className={styles.fill} />
-					<div
-						className={styles.thumb}
-						onPointerDown={(e) => {
-							e.currentTarget.setPointerCapture(e.pointerId);
-							rectRef.current =
-								trackRef.current?.getBoundingClientRect() ??
-								null;
-							const thumbRect =
-								e.currentTarget.getBoundingClientRect();
-							dragOffsetRef.current = {
-								offset: e.clientX - thumbRect.left,
-								thumbWidth: thumbRect.width,
-							};
-							setTransientValue(value);
-							setIsDragging(true);
-							onDrag(e.clientX);
-						}}
-						onPointerMove={(e) => {
-							if (isDragging) onDrag(e.clientX);
-						}}
-						onPointerUp={onDragStop}
-						onPointerCancel={onDragStop}
-					/>
-					<div className={styles.display}>
-						{onDisplay(currentValue)}
-					</div>
-				</div>
-				<button onPointerDown={onUp}>
-					<Icon type={rightIconType} />
-				</button>
-			</div>
-			<h4>
-				{title}
-				{warning && (
-					<span className={styles.warning} title={warning}>
-						<Icon type="warning" />
-					</span>
-				)}
-			</h4>
+		<div
+			ref={trackRef}
+			className={clsx(styles.track, isDragging && styles.dragging)}
+			style={
+				{
+					"--percent": (value - minValue) / (maxValue - minValue),
+				} as CSSProperties
+			}
+		>
+			<div className={styles.fill} />
+			<div
+				className={styles.thumb}
+				onPointerDown={(e) => {
+					e.currentTarget.setPointerCapture(e.pointerId);
+					const state = dragRef.current;
+					state.rect =
+						trackRef.current?.getBoundingClientRect() ?? null;
+					const thumbRect = e.currentTarget.getBoundingClientRect();
+					state.offset = e.clientX - thumbRect.left;
+					state.thumbWidth = thumbRect.width;
+					state.startValue = value;
+					state.transientValue = value;
+
+					setTransientValue(value);
+					setIsDragging(true);
+					onDrag(e);
+				}}
+				onPointerMove={onDrag}
+				onPointerUp={onDragStop}
+				onPointerCancel={onDragStop}
+			/>
+			<div className={styles.display}>{onDisplay(displayValue)}</div>
 		</div>
 	);
 }

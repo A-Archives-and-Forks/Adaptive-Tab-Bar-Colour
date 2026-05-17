@@ -1,4 +1,5 @@
 .confirm {
+	--width: calc(240 * var(--unit));
 	position: relative;
 	width: 100%;
 
@@ -6,47 +7,48 @@
 		display: flex;
 		position: absolute;
 		top: 100%;
-		left: 0;
+		left: calc((100% - var(--width)) / 2);
 		flex-direction: column;
-		gap: calc(8 * var(--unit));
-		z-index: 10;
-		filter: drop-shadow(0 0 calc(4 * var(--unit)) rgba(0, 0, 0, 0.25));
+		gap: var(--unit-8);
+		z-index: 1;
+		filter: drop-shadow(var(--shadow-small))
+			drop-shadow(var(--shadow-large));
 		box-sizing: border-box;
-		margin-top: calc(8.6 * var(--unit));
-		border-radius: calc(16 * var(--unit));
-		background-color: var(--panel);
-		padding: calc(8 * var(--unit));
-		width: 100%;
+		margin-top: var(--unit-12);
+		border-radius: var(--unit-16);
+		background-color: var(--panel-alt);
+		padding: var(--unit-8);
+		width: var(--width);
 
 		&::before {
 			position: absolute;
-			top: calc(-6 * var(--unit));
-			left: calc(50% - 6 * var(--unit));
-			transform: rotate(45deg);
-			z-index: -1;
-			border-radius: calc(4 * var(--unit)) calc(1 * var(--unit)) 0
-				calc(1 * var(--unit));
-			background-color: var(--panel);
-			width: calc(12 * var(--unit));
-			height: calc(12 * var(--unit));
+			top: calc(-1 * var(--unit-12));
+			left: 50%;
+			transform: translateX(-50%);
+			mask-image: url("data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iMzAiIHZpZXdCb3g9IjAgMCA2MCAzMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMzAgMEMzNS41IDAgMzkuNSAxMC4yNDYzIDQyLjUgMTUuNUM0My45Mjc2IDE4IDUxIDI5Ljk5OTkgNjAgMjkuOTk5OUwzMCAzMEwwIDI5Ljk5OTlDOC45OTk5OCAyOS45OTk5IDE2LjA3MjQgMTggMTcuNSAxNS41QzIwLjUgMTAuMjQ2MyAyNC41IDAgMzAgMFoiIGZpbGw9ImJsYWNrIi8+PC9zdmc+");
+			mask-size: contain;
+			mask-repeat: no-repeat;
+			background-color: inherit;
+			width: calc(2 * var(--unit-12));
+			height: var(--unit-12);
 			content: "";
 		}
 	}
 
 	.confirm-text {
-		padding: calc(4 * var(--unit));
+		padding: var(--unit-4);
 		text-align: start;
 	}
 
 	.confirm-actions {
 		display: flex;
 		justify-content: space-between;
-		gap: calc(8 * var(--unit));
+		gap: var(--unit-8);
 
 		button {
 			flex: 1;
 			justify-content: center;
-			height: calc(32 * var(--unit));
+			height: var(--unit-32);
 		}
 	}
 }

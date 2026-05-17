@@ -134,9 +134,12 @@ export default class preference {
 			case "compatibilityMode":
 			case "dynamic":
 			case "noThemeColour":
+			case "overwriteAccentColour":
 				this.#content[key] =
 					typeof value === "boolean" ? value : defaultContent[key];
 				break;
+			case "accentColour_dark":
+			case "accentColour_light":
 			case "fallbackColour_dark":
 			case "fallbackColour_light":
 			case "homeBackground_dark":
@@ -155,7 +158,11 @@ export default class preference {
 							})
 						: defaultContent[key];
 				break;
+			case "lastSave":
+			case "version":
+				break;
 			default:
+				console.warn("Unknown preference key:", key);
 				break;
 		}
 	}
@@ -172,6 +179,9 @@ export default class preference {
 			value === null ||
 			(this.#isRecord(value) &&
 				typeof value.header === "string" &&
+				(value.scheme === "both" ||
+					value.scheme === "dark" ||
+					value.scheme === "light") &&
 				(((value.headerType === "URL" ||
 					value.headerType === "ADDON_ID") &&
 					value.type === "COLOUR" &&
@@ -268,9 +278,17 @@ export default class preference {
 			if (merged.minContrast_light === 165) merged.minContrast_light = 90;
 		});
 		this.#migrate(content, [4, 0], () => {
-			merged.ruleList = this.#isRecord(content.siteList)
-				? content.siteLit
-				: {};
+			const ruleList: Record<string, unknown> = {};
+			if (this.#isRecord(content.siteList)) {
+				for (const [ruleId, ruleValue] of Object.entries(
+					content.siteList,
+				)) {
+					ruleList[ruleId] = this.#isRecord(ruleValue)
+						? { ...ruleValue, scheme: "both" }
+						: null;
+				}
+			}
+			merged.ruleList = ruleList;
 		});
 
 		for (const key in merged) {
@@ -436,42 +454,43 @@ export default class preference {
 	 * @param {string} [url=""] - Site URL. Default is `""`
 	 * @returns {Promise<RuleQueryResult>} Result.
 	 */
-	async getRule(url: string = ""): Promise<RuleQueryResult> {
+	async getRule(url: string = "", scheme: Scheme): Promise<RuleQueryResult> {
 		let id = 0;
-		let result: Rule = null;
-		if (url === "") return { id, url, result };
+		let rule: Rule = null;
+		if (url === "") return { id, url, rule };
 		const webExtId = await getWebExtId(url);
-		for (const ruleId in this.#content.ruleList) {
-			const rule = this.#content.ruleList[ruleId];
+		for (const forId in this.#content.ruleList) {
+			const forRule = this.#content.ruleList[forId];
 			if (
-				rule === null ||
-				typeof rule.header !== "string" ||
-				rule.header === ""
+				!this.#isRule(forRule) ||
+				forRule === null ||
+				forRule.header === "" ||
+				(forRule.scheme !== "both" && forRule.scheme !== scheme)
 			) {
 				continue;
 			} else if (
 				webExtId !== undefined &&
-				rule.headerType === "ADDON_ID" &&
-				rule.header === webExtId
+				forRule.headerType === "ADDON_ID" &&
+				forRule.header === webExtId
 			) {
-				id = +ruleId;
-				result = rule;
+				id = +forId;
+				rule = forRule;
 			} else {
 				const cleanUrl = url.replace(/\/$/, "");
-				const cleanHeader = rule.header.replace(/\/$/, "");
+				const cleanHeader = forRule.header.replace(/\/$/, "");
 				if (
-					rule.headerType === "URL" &&
+					forRule.headerType === "URL" &&
 					(cleanUrl === cleanHeader ||
 						this.#testRegex(cleanUrl, cleanHeader) ||
 						this.#testWildcard(cleanUrl, cleanHeader) ||
 						this.#testHostname(cleanUrl, cleanHeader))
 				) {
-					id = +ruleId;
-					result = rule;
+					id = +forId;
+					rule = forRule;
 				}
 			}
 		}
-		return { id, url, webExtId, result };
+		return { id, url, webExtId, rule };
 	}
 
 	/**
@@ -806,6 +825,44 @@ export default class preference {
 	}
 
 	/**
+	 * Gets the accent colour for dark theme.
+	 *
+	 * @returns {string} The accent colour as a hex string.
+	 */
+	get accentColour_dark(): string {
+		return this.#content.accentColour_dark;
+	}
+
+	/**
+	 * Sets the accent colour for dark theme.
+	 *
+	 * @param {string} value - The accent colour as a hex string.
+	 */
+	set accentColour_dark(value: string) {
+		this.#set("accentColour_dark", value);
+		this.#save();
+	}
+
+	/**
+	 * Gets the accent colour for light theme.
+	 *
+	 * @returns {string} The accent colour as a hex string.
+	 */
+	get accentColour_light(): string {
+		return this.#content.accentColour_light;
+	}
+
+	/**
+	 * Sets the accent colour for light theme.
+	 *
+	 * @param {string} value - The accent colour as a hex string.
+	 */
+	set accentColour_light(value: string) {
+		this.#set("accentColour_light", value);
+		this.#save();
+	}
+
+	/**
 	 * Gets whether dark/light scheme switching is allowed.
 	 *
 	 * @returns {boolean} `true` if scheme switching is allowed.
@@ -996,12 +1053,22 @@ export default class preference {
 	}
 
 	/**
-	 * Gets the preferences version number.
+	 * Gets whether accent colour should be overwritten.
 	 *
-	 * @returns {number[]} The version as an array of numbers.
+	 * @returns {boolean} `true` if the accent colour is overwritten.
 	 */
-	get version(): number[] {
-		return this.#content.version;
+	get overwriteAccentColour(): boolean {
+		return this.#content.overwriteAccentColour;
+	}
+
+	/**
+	 * Sets whether accent colour should be overwritten.
+	 *
+	 * @param {boolean} value - Whether to overwrite accent colour.
+	 */
+	set overwriteAccentColour(value: boolean) {
+		this.#set("overwriteAccentColour", value);
+		this.#save();
 	}
 
 	/**

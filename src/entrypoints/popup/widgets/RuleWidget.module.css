@@ -1,35 +1,57 @@
 .rule-widget {
 	display: flex;
 	flex-direction: column;
-	gap: calc(8 * var(--unit));
-	border: 1px solid var(--transparent-0);
-	border-radius: calc(4 * var(--unit));
-	padding: calc(8 * var(--unit));
+	gap: var(--unit-8);
+	border: var(--unit) solid var(--app-1);
+	border-radius: var(--unit-16);
+	padding: var(--unit-8);
 
 	.info-message {
-		svg {
-			display: inline-block;
-			vertical-align: text-bottom;
-			padding-inline-end: calc(4 * var(--unit));
-			width: auto;
-			height: 1em;
-		}
-
 		strong {
-			padding-inline: calc(4 * var(--unit));
+			padding-inline: var(--unit-4);
 		}
 	}
 
 	button {
 		justify-content: center;
-		background-color: var(--transparent-0);
+		height: var(--unit-32);
 
-		&:hover {
-			background-color: var(--transparent-1);
+		&.control-button {
+			border-radius: var(--unit-8);
+		}
+	}
+
+	.colour-wrapper {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: var(--unit-8);
+
+		& > div {
+			display: flex;
+			flex-direction: column;
+			gap: var(--unit-4);
 		}
 
-		&:active {
-			background-color: var(--transparent-2);
+		.reset-button {
+			transform: scale(1);
+			transition-duration: 100ms;
+			transition-property: color, transform;
+			transition-timing-function: ease;
+			background-color: transparent;
+			padding: 0;
+			aspect-ratio: 1/1;
+			width: auto;
+			height: 100%;
+			color: inherit;
+
+			&:hover {
+				transform: scale(1.04);
+				color: var(--text-primary);
+			}
+
+			&:active {
+				transform: scale(0.98);
+			}
 		}
 	}
 }

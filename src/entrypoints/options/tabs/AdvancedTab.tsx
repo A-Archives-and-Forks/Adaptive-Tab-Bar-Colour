@@ -1,31 +1,28 @@
+import preference from "@/utils/preference";
 import clsx from "clsx";
 import { useSyncExternalStore } from "react";
-import styles from "./AdvancedSettingsTab.module.css";
+import styles from "./AdvancedTab.module.css";
 
-interface AdvancedSettingsTabProps {
+interface AdvancedTabProps {
 	pref: preference;
 	ready: boolean;
 }
 
-export default function AdvancedSettingsTab({
-	pref,
-	ready,
-}: AdvancedSettingsTabProps) {
-	const [scheme, setScheme] = useState(getSystemScheme());
-	const fileInputRef = useRef<HTMLInputElement | null>(null);
-
+export default function AdvancedTab({ pref, ready }: AdvancedTabProps) {
 	useSyncExternalStore(
 		(listener) => pref.setOnChangeListener(listener),
 		() => pref.getLastSave(),
 	);
+
+	const [scheme, setScheme] = useState(getSystemScheme());
+	const fileInputRef = useRef<HTMLInputElement | null>(null);
+
 	useEffect(() => {
 		addSchemeChangeListener(() => setScheme(getSystemScheme()));
 	}, []);
 
 	return (
-		<main
-			className={clsx(styles.advancedSettingsTab, !ready && "disabled")}
-		>
+		<main className={clsx(styles.advancedTab, !ready && "disabled")}>
 			<div className={styles.column}>
 				<section
 					className={clsx(
@@ -83,12 +80,109 @@ export default function AdvancedSettingsTab({
 				</section>
 				<section
 					className={clsx(
+						styles.cardSection,
+						pref.compatibilityMode && "disabled",
+					)}
+				>
+					<h3>{i18n.t("overwriteAccentColour")}</h3>
+					<Switch
+						label={i18n.t("overwriteAccentColourTooltip")}
+						active={pref.overwriteAccentColour}
+						onChange={(value) =>
+							(pref.overwriteAccentColour = value)
+						}
+					/>
+					{pref.overwriteAccentColour && (
+						<div className={styles.colourWrapper}>
+							<div>
+								<Colour
+									value={pref.accentColour_light}
+									onChange={(value) =>
+										(pref.accentColour_light = value)
+									}
+								/>
+								<h4>
+									{i18n.t("inLightMode")}
+									<button
+										className={styles.resetButton}
+										title={i18n.t("reset")}
+										onClick={() =>
+											pref.reset(["accentColour_light"])
+										}
+									>
+										<Icon type="reset" size="text" />
+									</button>
+								</h4>
+							</div>
+							<div>
+								<Colour
+									value={pref.accentColour_dark}
+									onChange={(value) =>
+										(pref.accentColour_dark = value)
+									}
+								/>
+								<h4>
+									{i18n.t("inDarkMode")}
+									<button
+										className={styles.resetButton}
+										title={i18n.t("reset")}
+										onClick={() =>
+											pref.reset(["accentColour_dark"])
+										}
+									>
+										<Icon type="reset" size="text" />
+									</button>
+								</h4>
+							</div>
+						</div>
+					)}
+				</section>
+			</div>
+			<div className={styles.column}>
+				<section className={styles.cardSection}>
+					<h3>{i18n.t("minimumContrast")}</h3>
+					<p>{i18n.t("minimumContrastTooltip")}</p>
+					<div className={styles.sliderWrapper}>
+						<Slider
+							minValue={0}
+							maxValue={210}
+							minorStep={5}
+							majorStep={15}
+							value={pref.minContrast_light}
+							leftIconType="circle"
+							rightIconType="contrast"
+							onDisplay={(value) => (value / 10).toFixed(1)}
+							onChange={(value) =>
+								(pref.minContrast_light = value)
+							}
+						/>
+						<h4>{i18n.t("inLightMode")}</h4>
+					</div>
+					<div className={styles.sliderWrapper}>
+						<Slider
+							minValue={0}
+							maxValue={210}
+							minorStep={5}
+							majorStep={15}
+							value={pref.minContrast_dark}
+							leftIconType="circle"
+							rightIconType="contrast"
+							onDisplay={(value) => (value / 10).toFixed(1)}
+							onChange={(value) =>
+								(pref.minContrast_dark = value)
+							}
+						/>
+						<h4>{i18n.t("inDarkMode")}</h4>
+					</div>
+				</section>
+				<section
+					className={clsx(
 						styles.listSection,
 						pref.compatibilityMode && "disabled",
 					)}
 				>
-					<div>{i18n.t("homepageColourLight")}</div>
 					<div>
+						<h3>{i18n.t("homepageColourLight")}</h3>
 						<Colour
 							value={pref.homeBackground_light}
 							onChange={(value) =>
@@ -97,15 +191,7 @@ export default function AdvancedSettingsTab({
 						/>
 					</div>
 					<div>
-						<button
-							className={styles.resetButton}
-							onClick={() => pref.reset(["homeBackground_light"])}
-						>
-							<Icon type="reset" />
-						</button>
-					</div>
-					<div>{i18n.t("homepageColourDark")}</div>
-					<div>
+						<h3>{i18n.t("homepageColourDark")}</h3>
 						<Colour
 							value={pref.homeBackground_dark}
 							onChange={(value) =>
@@ -114,15 +200,7 @@ export default function AdvancedSettingsTab({
 						/>
 					</div>
 					<div>
-						<button
-							className={styles.resetButton}
-							onClick={() => pref.reset(["homeBackground_dark"])}
-						>
-							<Icon type="reset" />
-						</button>
-					</div>
-					<div>{i18n.t("fallbackColourLight")}</div>
-					<div>
+						<h3>{i18n.t("fallbackColourLight")}</h3>
 						<Colour
 							value={pref.fallbackColour_light}
 							onChange={(value) =>
@@ -131,15 +209,7 @@ export default function AdvancedSettingsTab({
 						/>
 					</div>
 					<div>
-						<button
-							className={styles.resetButton}
-							onClick={() => pref.reset(["fallbackColour_light"])}
-						>
-							<Icon type="reset" />
-						</button>
-					</div>
-					<div>{i18n.t("fallbackColourDark")}</div>
-					<div>
+						<h3>{i18n.t("fallbackColourDark")}</h3>
 						<Colour
 							value={pref.fallbackColour_dark}
 							onChange={(value) =>
@@ -147,47 +217,9 @@ export default function AdvancedSettingsTab({
 							}
 						/>
 					</div>
-					<div>
-						<button
-							className={styles.resetButton}
-							onClick={() => pref.reset(["fallbackColour_dark"])}
-						>
-							<Icon type="reset" />
-						</button>
-					</div>
-				</section>
-			</div>
-			<div className={styles.column}>
-				<section className={styles.cardSection}>
-					<h3>{i18n.t("minimumContrast")}</h3>
-					<p>{i18n.t("minimumContrastTooltip")}</p>
-					<Slider
-						title={i18n.t("inLightMode")}
-						minValue={0}
-						maxValue={210}
-						minorStep={5}
-						majorStep={15}
-						value={pref.minContrast_light}
-						leftIconType="circle"
-						rightIconType="contrast"
-						onDisplay={(value) => (value / 10).toFixed(1)}
-						onChange={(value) => (pref.minContrast_light = value)}
-					/>
-					<Slider
-						title={i18n.t("inDarkMode")}
-						minValue={0}
-						maxValue={210}
-						minorStep={5}
-						majorStep={15}
-						value={pref.minContrast_dark}
-						leftIconType="circle"
-						rightIconType="contrast"
-						onDisplay={(value) => (value / 10).toFixed(1)}
-						onChange={(value) => (pref.minContrast_dark = value)}
-					/>
 				</section>
 				<section className={styles.cardSection}>
-					<h3>{i18n.t("backup")}</h3>
+					<h3>{i18n.t("backupAndReset")}</h3>
 					<button
 						className={styles.textButton}
 						onClick={() => {
@@ -204,14 +236,14 @@ export default function AdvancedSettingsTab({
 						}}
 					>
 						<Icon type="download" />
-						{i18n.t("exportSettings")}
+						<span>{i18n.t("exportSettings")}</span>
 					</button>
 					<button
 						className={styles.textButton}
 						onClick={() => fileInputRef.current?.click()}
 					>
 						<Icon type="upload" />
-						{i18n.t("importSettings")}
+						<span>{i18n.t("importSettings")}</span>
 					</button>
 					<input
 						type="file"
@@ -231,77 +263,17 @@ export default function AdvancedSettingsTab({
 							reader.readAsText(file);
 						}}
 					/>
-				</section>
-				<section className={styles.cardSection}>
-					<h3>{i18n.t("reset")}</h3>
 					<Confirm
-						confirmText={i18n.t("confirmResetThemeBuilder")}
-						onConfirm={() =>
-							pref.reset([
-								"tabbar",
-								"tabbarBorder",
-								"tabSelected",
-								"tabSelectedBorder",
-								"toolbar",
-								"toolbarBorder",
-								"toolbarField",
-								"toolbarFieldBorder",
-								"toolbarFieldOnFocus",
-								"sidebar",
-								"sidebarBorder",
-								"popup",
-								"popupBorder",
-							])
-						}
+						confirmText={i18n.t("confirmResetAll")}
+						onConfirm={() => pref.reset()}
 					>
-						{({ setIsOpen, isOpen }) => (
+						{(open) => (
 							<button
 								className={styles.textButton}
-								onClick={() => setIsOpen(!isOpen)}
+								onClick={open}
 							>
 								<Icon type="reset" />
-								{i18n.t("resetThemeBuilder")}
-							</button>
-						)}
-					</Confirm>
-					<Confirm
-						confirmText={i18n.t("confirmResetRuleList")}
-						onConfirm={() => pref.reset(["ruleList"])}
-					>
-						{({ setIsOpen, isOpen }) => (
-							<button
-								className={styles.textButton}
-								onClick={() => setIsOpen(!isOpen)}
-							>
-								<Icon type="reset" />
-								{i18n.t("resetRuleList")}
-							</button>
-						)}
-					</Confirm>
-					<Confirm
-						confirmText={i18n.t("confirmResetAdvanced")}
-						onConfirm={() =>
-							pref.reset([
-								"minContrast_light",
-								"minContrast_dark",
-								"allowDarkLight",
-								"dynamic",
-								"noThemeColour",
-								"compatibilityMode",
-								"homeBackground_light",
-								"homeBackground_dark",
-								"fallbackColour_light",
-								"fallbackColour_dark",
-							])
-						}
-					>
-						{({ setIsOpen, isOpen }) => (
-							<button
-								className={styles.textButton}
-								onClick={() => setIsOpen(!isOpen)}
-							>
-								<Icon type="reset" />
-								{i18n.t("resetAdvanced")}
+								<span>{i18n.t("resetAllSettings")}</span>
 							</button>
 						)}
 					</Confirm>

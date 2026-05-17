@@ -1,13 +1,18 @@
+import preference from "@/utils/preference";
 import { useSyncExternalStore } from "react";
 import styles from "./RuleWidget.module.css";
 
 interface RuleWidgetProps {
 	pref: preference;
-	rule: RuleQueryResult;
-	meta: MetaQueryResult;
+	ruleData: RuleQueryResult;
+	metaData: MetaQueryResult;
 }
 
-export default function RuleWidget({ pref, rule, meta }: RuleWidgetProps) {
+export default function RuleWidget({
+	pref,
+	ruleData,
+	metaData,
+}: RuleWidgetProps) {
 	useSyncExternalStore(
 		(listener) => pref.setOnChangeListener(listener),
 		() => pref.getLastSave(),
@@ -16,26 +21,27 @@ export default function RuleWidget({ pref, rule, meta }: RuleWidgetProps) {
 	return (
 		<section className={styles.ruleWidget}>
 			<div className={styles.infoMessage}>
-				<Icon type="info" />
-				<ReasonText reason={meta.reason} info={meta.info} />
+				<Icon type="info" inline />
+				<span>
+					<ReasonText reason={metaData.reason} info={metaData.info} />
+				</span>
 			</div>
-			<RuleControls pref={pref} rule={rule} meta={meta} />
+			<RuleControls pref={pref} ruleData={ruleData} metaData={metaData} />
 		</section>
 	);
 }
 
-function ReasonText({
-	reason,
-	info,
-}: {
+interface ReasonTextProps {
 	reason: TabMetaReason;
 	info?: string;
-}) {
+}
+
+function ReasonText({ reason, info }: ReasonTextProps) {
 	switch (reason) {
 		case "COLOUR_PICKED":
-			return i18n.t("colourPickedFromWebpage");
+			return i18n.t("usingColourFromWebpage");
 		case "COLOUR_SPECIFIED":
-			return i18n.t("colourIsSpecified");
+			return i18n.t("usingSpecifiedColour");
 		case "THEME_USED":
 			return i18n.t("usingThemeColour");
 		case "THEME_MISSING":
@@ -47,21 +53,21 @@ function ReasonText({
 		case "QS_USED":
 			return (
 				<>
-					{i18n.t("colourIsPickedFrom")}
+					{i18n.t("usingColourFromElement")}
 					<strong>
 						<code>{info}</code>
 					</strong>
-					{i18n.t("colourIsPickedFromEnd")}
+					{i18n.t("usingColourFromElementEnd")}
 				</>
 			);
 		case "QS_FAILED":
 			return (
 				<>
-					{i18n.t("cannotFindElement")}
+					{i18n.t("couldNotFindElement")}
 					<strong>
 						<code>{info}</code>
 					</strong>
-					{i18n.t("cannotFindElementEnd")}
+					{i18n.t("couldNotFindElementEnd")}
 				</>
 			);
 		case "QS_ERROR":
@@ -99,17 +105,17 @@ function ReasonText({
 				</>
 			);
 		case "HOME_PAGE":
-			return i18n.t("colourForHomePage");
+			return i18n.t("usingColourForHomePage");
 		case "PROTECTED_PAGE":
 			return i18n.t("pageIsProtected");
 		case "IMAGE_VIEWER":
 			return i18n.t("usingImageViewer");
 		case "PDF_VIEWER":
-			return i18n.t("colourForPDFViewer");
+			return i18n.t("usingColourForPDFViewer");
 		case "JSON_VIEWER":
-			return i18n.t("colourForJSONViewer");
+			return i18n.t("usingColourForJSONViewer");
 		case "TEXT_VIEWER":
-			return i18n.t("colourForPlainTextViewer");
+			return i18n.t("usingColourForPlainTextViewer");
 		case "FALLBACK_COLOUR":
 			return i18n.t("usingFallbackColour");
 		default:
@@ -117,26 +123,25 @@ function ReasonText({
 	}
 }
 
-function RuleControls({
-	pref,
-	rule,
-	meta,
-}: {
+interface RuleControlsProps {
 	pref: preference;
-	rule: RuleQueryResult;
-	meta: MetaQueryResult;
-}) {
-	if (rule.id !== 0) {
+	ruleData: RuleQueryResult;
+	metaData: MetaQueryResult;
+}
+
+function RuleControls({ pref, ruleData, metaData }: RuleControlsProps) {
+	if (ruleData.id !== 0) {
 		return (
 			<>
 				<RuleCard
 					inPopup
-					rule={rule.result}
-					onChange={(newRule) => pref.setRule(rule.id, newRule)}
+					rule={ruleData.rule}
+					onChange={(newRule) => pref.setRule(ruleData.id, newRule)}
 				/>
 				<button
+					className={styles.controlButton}
 					onClick={() => {
-						pref.setRule(rule.id, null);
+						pref.setRule(ruleData.id, null);
 					}}
 				>
 					{i18n.t("deleteRule")}
@@ -145,39 +150,84 @@ function RuleControls({
 		);
 	} else if (
 		["THEME_IGNORED", "THEME_USED", "COLOUR_PICKED"].includes(
-			meta.reason,
+			metaData.reason,
 		) &&
-		URL.canParse(rule.url)
+		URL.canParse(ruleData.url)
 	) {
-		const { hostname } = new URL(rule.url);
+		const { hostname } = new URL(ruleData.url);
 		return (
 			<button
+				className={styles.controlButton}
 				onClick={() => {
 					pref.addRule({
 						headerType: "URL",
 						header: hostname,
 						type: "COLOUR",
-						value: "#000000",
+						value: new colour().random().toHex(),
+						scheme: "both",
 					});
 				}}
 			>
 				{i18n.t("addANewRule")}
 			</button>
 		);
-	} else if (["ADDON_DEFAULT", "ADDON_PRESET"].includes(meta.reason)) {
+	} else if (["ADDON_DEFAULT", "ADDON_PRESET"].includes(metaData.reason)) {
 		return (
 			<button
+				className={styles.controlButton}
 				onClick={() => {
 					pref.addRule({
 						headerType: "ADDON_ID",
-						header: rule.url,
+						header: ruleData.url,
 						type: "COLOUR",
-						value: "#000000",
+						value: new colour().random().toHex(),
+						scheme: "both",
 					});
 				}}
 			>
 				{i18n.t("addANewRule")}
 			</button>
+		);
+	} else if (metaData.reason === "HOME_PAGE") {
+		return (
+			<div className={styles.colourWrapper}>
+				<div>
+					<Colour
+						inPopup
+						value={pref.homeBackground_light}
+						onChange={(value) =>
+							(pref.homeBackground_light = value)
+						}
+					/>
+					<h4>
+						{i18n.t("inLightMode")}
+						<button
+							className={styles.resetButton}
+							title={i18n.t("reset")}
+							onClick={() => pref.reset(["homeBackground_light"])}
+						>
+							<Icon type="reset" size="text" />
+						</button>
+					</h4>
+				</div>
+				<div>
+					<Colour
+						inPopup
+						value={pref.homeBackground_dark}
+						onChange={(value) => (pref.homeBackground_dark = value)}
+					/>
+					<h4>
+						{i18n.t("inDarkMode")}
+						<button
+							className={styles.resetButton}
+							title={i18n.t("reset")}
+							onClick={() => pref.reset(["homeBackground_dark"])}
+						>
+							<Icon type="reset" size="text" />
+						</button>
+					</h4>
+				</div>
+			</div>
 		);
 	} else return null;
 }

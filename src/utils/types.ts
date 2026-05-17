@@ -24,6 +24,7 @@ export interface ColourRule {
 	header: string;
 	type: "COLOUR";
 	value: string;
+	scheme: "both" | Scheme;
 }
 
 export interface ThemeColourRule {
@@ -31,6 +32,7 @@ export interface ThemeColourRule {
 	header: string;
 	type: "THEME_COLOUR";
 	value: boolean;
+	scheme: "both" | Scheme;
 }
 
 export interface QuerySelectorRule {
@@ -38,14 +40,14 @@ export interface QuerySelectorRule {
 	header: string;
 	type: "QUERY_SELECTOR";
 	value: string;
+	scheme: "both" | Scheme;
 }
 
 export type Rule = ColourRule | ThemeColourRule | QuerySelectorRule | null;
 
 export type RuleList = Record<number, Rule>;
 
-export interface PreferenceContent {
-	// theme builder
+export interface ThemeBuilderPreferenceContent {
 	popup: number;
 	popupBorder: number;
 	sidebar: number;
@@ -59,9 +61,14 @@ export interface PreferenceContent {
 	toolbarField: number;
 	toolbarFieldBorder: number;
 	toolbarFieldOnFocus: number;
+}
+
+export interface PreferenceContent extends ThemeBuilderPreferenceContent {
 	// rule list
 	ruleList: RuleList;
 	// advanced
+	accentColour_dark: string;
+	accentColour_light: string;
 	allowDarkLight: boolean;
 	compatibilityMode: boolean;
 	dynamic: boolean;
@@ -72,6 +79,7 @@ export interface PreferenceContent {
 	minContrast_dark: number;
 	minContrast_light: number;
 	noThemeColour: boolean;
+	overwriteAccentColour: boolean;
 	// state
 	lastSave: number;
 	version: number[];
@@ -102,7 +110,7 @@ export interface RuleQueryResult {
 	id: number;
 	url: string;
 	webExtId?: string;
-	result: Rule;
+	rule: Rule;
 }
 
 export type TabMetaReason =
@@ -139,10 +147,10 @@ export interface ApplyThemeResult {
 	corrected: boolean;
 }
 
-export interface Cache {
-	rule: RuleQueryResult;
-	meta: MetaQueryResult;
-	theme: ApplyThemeResult;
+export interface CacheData {
+	ruleData: RuleQueryResult;
+	metaData: MetaQueryResult;
+	themeData: ApplyThemeResult;
 }
 
 export interface ColourCorrectionResult {
@@ -158,12 +166,20 @@ export interface Theme {
 
 export type MessageForBackground =
 	| { header: "UPDATE_COLOUR"; colour: TabColourData }
-	| { header: "SCRIPT_READY" | "SCHEME_REQUEST" | "CACHE_REQUEST" };
+	| { header: "SCRIPT_READY" | "CACHE_REQUEST" };
 
-export type MessageForPopup = { header: "CACHE_UPDATE" };
+export type MessageForPopup = {
+	header: "CACHE_UPDATE";
+	windowId: number;
+	cache: CacheData;
+};
 
 export type MessageForTab =
-	| { header: "GET_COLOUR"; dynamic: boolean; query?: string }
+	| {
+			header: "SETUP_SCRIPT";
+			mode: "suspend" | "static" | "dynamic";
+			query?: string;
+	  }
 	| { header: "SET_THEME_COLOUR"; colour: string };
 
 export type BackgroundMessageListener = (
@@ -183,3 +199,31 @@ export type TabMessageListener = (
 	sender: Browser.runtime.MessageSender,
 	sendResponse: (response?: unknown) => void,
 ) => unknown;
+
+export type GlyphHighlight =
+	| "selectedTab"
+	| "toolbar"
+	| "tabBar"
+	| "sidebar"
+	| "popup"
+	| "urlBar"
+	| "none";
+
+export type IconType =
+	| "moon"
+	| "sun"
+	| "sunMoon"
+	| "warning"
+	| "delete"
+	| "contrast"
+	| "circle"
+	| "undo"
+	| "redo"
+	| "reset"
+	| "upload"
+	| "download"
+	| "info"
+	| "redirect"
+	| "border"
+	| "background"
+	| "backgroundOnFocus";

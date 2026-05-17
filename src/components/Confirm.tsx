@@ -2,10 +2,7 @@ import { type ReactNode } from "react";
 import styles from "./Confirm.module.css";
 
 interface ConfirmProps {
-	children: (args: {
-		isOpen: boolean;
-		setIsOpen: (isOpen: boolean) => void;
-	}) => ReactNode;
+	children: (open: () => void) => ReactNode;
 	confirmText: string;
 	onConfirm: () => void;
 }
@@ -19,21 +16,26 @@ export default function Confirm({
 	const containerRef = useRef<HTMLDivElement | null>(null);
 
 	useEffect(() => {
-		const onClose = (event: MouseEvent) => {
-			if (
-				containerRef.current &&
-				!containerRef.current.contains(event.target as Node)
-			) {
+		const onPointerDown = (event: PointerEvent) => {
+			if (!containerRef.current?.contains(event.target as Node))
 				setIsOpen(false);
-			}
 		};
-		if (isOpen) document.addEventListener("mousedown", onClose);
-		return () => document.removeEventListener("mousedown", onClose);
+		if (isOpen) {
+			document.addEventListener("pointerdown", onPointerDown);
+			return () =>
+				document.removeEventListener("pointerdown", onPointerDown);
+		}
 	}, [isOpen]);
+
+	useEffect(() => {
+		const onBlur = () => setIsOpen(false);
+		document.addEventListener("blur", onBlur);
+		return () => document.removeEventListener("blur", onBlur);
+	}, []);
 
 	return (
 		<div className={styles.confirm} ref={containerRef}>
-			{children({ isOpen, setIsOpen })}
+			{children(() => setIsOpen(!isOpen))}
 			{isOpen && (
 				<div className={styles.confirmMenu}>
 					<div className={styles.confirmText}>{confirmText}</div>
