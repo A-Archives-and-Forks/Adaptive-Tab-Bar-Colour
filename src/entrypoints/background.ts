@@ -166,11 +166,12 @@ async function handleMessage(
 			));
 			sendMessageToPopup({
 				header: "CACHE_UPDATE",
+				windowId,
 				cache: { ruleData, metaData, themeData },
 			});
 			break;
 		case "CACHE_REQUEST": {
-			const windowId = await getWindowId(tab);
+			const windowId = await getActiveWindowId();
 			if (windowId === undefined) return undefined;
 			const ruleData = cache.ruleData[windowId];
 			const metaData = cache.metaData[windowId];
@@ -217,6 +218,7 @@ async function updateTab(tab: Browser.tabs.Tab): Promise<void> {
 	));
 	sendMessageToPopup({
 		header: "CACHE_UPDATE",
+		windowId: tab.windowId,
 		cache: { ruleData, metaData, themeData },
 	});
 }

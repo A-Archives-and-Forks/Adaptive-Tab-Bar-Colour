@@ -138,19 +138,6 @@ export function addTabChangeListener(listener: () => void): void {
 }
 
 /**
- * Resolves the target window id from a sender tab or the last focused window.
- *
- * @async
- * @param {Browser.tabs.Tab | undefined} tab - Sender tab, if available.
- * @returns {Promise<number | undefined>} Resolved window id.
- */
-export async function getWindowId(
-	tab?: Browser.tabs.Tab,
-): Promise<number | undefined> {
-	return tab?.windowId ?? (await browser.windows.getLastFocused()).id;
-}
-
-/**
  * Checks whether the tab's window is incognito.
  *
  * @async
@@ -163,6 +150,19 @@ export async function isWindowIncognito(windowId: number): Promise<boolean> {
 	} catch {
 		return false;
 	}
+}
+
+/**
+ * Retrieves the ID of the current or last active window.
+ *
+ * @async
+ * @returns {Promise<number | undefined>} The window ID.
+ */
+export async function getActiveWindowId(): Promise<number | undefined> {
+	return (
+		(await browser.tabs.query({ active: true, currentWindow: true }))[0]
+			?.windowId ?? (await browser.windows.getLastFocused()).id
+	);
 }
 
 /**

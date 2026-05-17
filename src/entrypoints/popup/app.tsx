@@ -15,14 +15,23 @@ async function getCache(): Promise<CacheData | undefined> {
 export default function App() {
 	const [ready, setReady] = useState(false);
 	const [cache, setCache] = useState<CacheData | undefined>();
+	const windowIdRef = useRef<number | undefined>(0);
 
 	function handleMessage(message: MessageForPopup): void {
-		if (message.header === "CACHE_UPDATE") setCache(message.cache);
+		if (
+			message.header === "CACHE_UPDATE" &&
+			message.windowId === windowIdRef.current
+		)
+			setCache(message.cache);
 	}
 
 	useEffect(() => {
 		pref.initialise().then(() => setReady(true));
-		getCache().then(setCache);
+		getCache().then(async (newCache) => {
+			const windowId = await getActiveWindowId();
+			windowIdRef.current = windowId;
+			if (windowId !== undefined) setCache(newCache);
+		});
 		addMessageListener(handleMessage);
 		return () => removeMessageListener(handleMessage);
 	}, []);

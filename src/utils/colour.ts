@@ -26,6 +26,7 @@ export default class colour {
 	 * Parses the value to set the colour.
 	 *
 	 * @param {string | colour} [value] - A CSS string, or `colour` instance.
+	 * @returns {this} This instance.
 	 */
 	parse(value: string | colour | undefined = undefined): this {
 		if (typeof value === "string") {
@@ -156,7 +157,7 @@ export default class colour {
 	 * Applies an opacity factor to the current colour.
 	 *
 	 * @param {number} opacity - The opacity factor to apply (0-1).
-	 * @returns {colour} This colour instance for method chaining.
+	 * @returns {this} This instance.
 	 */
 	opacity(opacity: number): this {
 		this.#a *= Math.max(0, Math.min(1, opacity));

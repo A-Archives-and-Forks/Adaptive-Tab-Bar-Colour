@@ -168,7 +168,11 @@ export type MessageForBackground =
 	| { header: "UPDATE_COLOUR"; colour: TabColourData }
 	| { header: "SCRIPT_READY" | "CACHE_REQUEST" };
 
-export type MessageForPopup = { header: "CACHE_UPDATE"; cache: CacheData };
+export type MessageForPopup = {
+	header: "CACHE_UPDATE";
+	windowId: number;
+	cache: CacheData;
+};
 
 export type MessageForTab =
 	| {
