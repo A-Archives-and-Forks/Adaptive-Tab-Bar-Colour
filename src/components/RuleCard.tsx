@@ -146,12 +146,69 @@ export default function RuleCard({
 				}
 			})()}
 			{!inPopup && (
-				<button
-					className={styles.deleteButton}
-					onClick={() => onChange(null)}
-				>
-					<Icon type="delete" />
-				</button>
+				<span>
+					<button
+						className={styles.button}
+						title={(() => {
+							switch (rule.scheme) {
+								case "both":
+									return i18n.t("ruleAppliedInBothMode");
+								case "light":
+									return i18n.t("ruleAppliedInLightMode");
+								case "dark":
+									return i18n.t("ruleAppliedInDarkMode");
+							}
+						})()}
+						onClick={async () => {
+							onChange({
+								...rule,
+								scheme: await (async () => {
+									if (
+										(await getCurrentScheme()) === "light"
+									) {
+										switch (rule.scheme) {
+											case "both":
+												return "light";
+											case "light":
+												return "dark";
+											case "dark":
+												return "both";
+										}
+									} else {
+										switch (rule.scheme) {
+											case "both":
+												return "dark";
+											case "dark":
+												return "light";
+											case "light":
+												return "both";
+										}
+									}
+								})(),
+							});
+						}}
+					>
+						<Icon
+							type={(() => {
+								switch (rule.scheme) {
+									case "both":
+										return "sunMoon";
+									case "dark":
+										return "moon";
+									case "light":
+										return "sun";
+								}
+							})()}
+						/>
+					</button>
+					<button
+						className={styles.button}
+						title={i18n.t("delete")}
+						onClick={() => onChange(null)}
+					>
+						<Icon type="delete" />
+					</button>
+				</span>
 			)}
 		</section>
 	);

@@ -169,8 +169,6 @@ async function handleMessage(
 				cache: { ruleData, metaData, themeData },
 			});
 			break;
-		case "SCHEME_REQUEST":
-			return getCurrentScheme();
 		case "CACHE_REQUEST": {
 			const windowId = await getWindowId(tab);
 			if (windowId === undefined) return undefined;
@@ -205,7 +203,10 @@ async function run(): Promise<void> {
  */
 async function updateTab(tab: Browser.tabs.Tab): Promise<void> {
 	const windowId = tab.windowId;
-	const ruleData = (cache.ruleData[windowId] = await pref.getRule(tab.url));
+	const ruleData = (cache.ruleData[windowId] = await pref.getRule(
+		tab.url,
+		cache.scheme,
+	));
 	const metaData = (cache.metaData[windowId] = await getTabMeta(
 		tab,
 		ruleData,

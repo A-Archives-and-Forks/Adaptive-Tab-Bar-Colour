@@ -179,6 +179,9 @@ export default class preference {
 			value === null ||
 			(this.#isRecord(value) &&
 				typeof value.header === "string" &&
+				(value.scheme === "both" ||
+					value.scheme === "dark" ||
+					value.scheme === "light") &&
 				(((value.headerType === "URL" ||
 					value.headerType === "ADDON_ID") &&
 					value.type === "COLOUR" &&
@@ -275,9 +278,17 @@ export default class preference {
 			if (merged.minContrast_light === 165) merged.minContrast_light = 90;
 		});
 		this.#migrate(content, [4, 0], () => {
-			merged.ruleList = this.#isRecord(content.siteList)
-				? content.siteLit
-				: {};
+			const ruleList: Record<string, unknown> = {};
+			if (this.#isRecord(content.siteList)) {
+				for (const [ruleId, ruleValue] of Object.entries(
+					content.siteList,
+				)) {
+					ruleList[ruleId] = this.#isRecord(ruleValue)
+						? { ...ruleValue, scheme: "both" }
+						: null;
+				}
+			}
+			merged.ruleList = ruleList;
 		});
 
 		for (const key in merged) {
@@ -443,7 +454,7 @@ export default class preference {
 	 * @param {string} [url=""] - Site URL. Default is `""`
 	 * @returns {Promise<RuleQueryResult>} Result.
 	 */
-	async getRule(url: string = ""): Promise<RuleQueryResult> {
+	async getRule(url: string = "", scheme: Scheme): Promise<RuleQueryResult> {
 		let id = 0;
 		let rule: Rule = null;
 		if (url === "") return { id, url, rule };
@@ -451,9 +462,10 @@ export default class preference {
 		for (const forId in this.#content.ruleList) {
 			const forRule = this.#content.ruleList[forId];
 			if (
+				!this.#isRule(forRule) ||
 				forRule === null ||
-				typeof forRule.header !== "string" ||
-				forRule.header === ""
+				forRule.header === "" ||
+				(forRule.scheme !== "both" && forRule.scheme !== scheme)
 			) {
 				continue;
 			} else if (

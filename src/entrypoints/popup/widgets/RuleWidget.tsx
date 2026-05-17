@@ -163,7 +163,8 @@ function RuleControls({ pref, ruleData, metaData }: RuleControlsProps) {
 						headerType: "URL",
 						header: hostname,
 						type: "COLOUR",
-						value: "#000000",
+						value: new colour().random().toHex(),
+						scheme: "both",
 					});
 				}}
 			>
@@ -179,7 +180,8 @@ function RuleControls({ pref, ruleData, metaData }: RuleControlsProps) {
 						headerType: "ADDON_ID",
 						header: ruleData.url,
 						type: "COLOUR",
-						value: "#000000",
+						value: new colour().random().toHex(),
+						scheme: "both",
 					});
 				}}
 			>

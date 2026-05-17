@@ -24,6 +24,7 @@ export interface ColourRule {
 	header: string;
 	type: "COLOUR";
 	value: string;
+	scheme: "both" | Scheme;
 }
 
 export interface ThemeColourRule {
@@ -31,6 +32,7 @@ export interface ThemeColourRule {
 	header: string;
 	type: "THEME_COLOUR";
 	value: boolean;
+	scheme: "both" | Scheme;
 }
 
 export interface QuerySelectorRule {
@@ -38,6 +40,7 @@ export interface QuerySelectorRule {
 	header: string;
 	type: "QUERY_SELECTOR";
 	value: string;
+	scheme: "both" | Scheme;
 }
 
 export type Rule = ColourRule | ThemeColourRule | QuerySelectorRule | null;
@@ -163,7 +166,7 @@ export interface Theme {
 
 export type MessageForBackground =
 	| { header: "UPDATE_COLOUR"; colour: TabColourData }
-	| { header: "SCRIPT_READY" | "SCHEME_REQUEST" | "CACHE_REQUEST" };
+	| { header: "SCRIPT_READY" | "CACHE_REQUEST" };
 
 export type MessageForPopup = { header: "CACHE_UPDATE"; cache: CacheData };
 
@@ -205,6 +208,7 @@ export type GlyphHighlight =
 export type IconType =
 	| "moon"
 	| "sun"
+	| "sunMoon"
 	| "warning"
 	| "delete"
 	| "contrast"

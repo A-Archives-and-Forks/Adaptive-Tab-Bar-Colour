@@ -43,7 +43,8 @@ export default function RuleTab({ pref, ready }: RuleTabProps) {
 						headerType: "URL",
 						header: "",
 						type: "COLOUR",
-						value: "#000000",
+						value: new colour().random().toHex(),
+						scheme: "both",
 					});
 					pref.syncUI();
 				}}
