@@ -89,7 +89,6 @@ main.advanced-tab {
 
 		.reset-button {
 			transform: scale(1);
-			transition-duration: 160ms;
 			transition-property: color, transform;
 			transition-timing-function: ease;
 			background-color: transparent;

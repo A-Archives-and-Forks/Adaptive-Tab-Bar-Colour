@@ -105,6 +105,7 @@ export default function AdvancedTab({ pref, ready }: AdvancedTabProps) {
 									{i18n.t("inLightMode")}
 									<button
 										className={styles.resetButton}
+										title={i18n.t("reset")}
 										onClick={() =>
 											pref.reset(["accentColour_light"])
 										}
@@ -124,6 +125,7 @@ export default function AdvancedTab({ pref, ready }: AdvancedTabProps) {
 									{i18n.t("inDarkMode")}
 									<button
 										className={styles.resetButton}
+										title={i18n.t("reset")}
 										onClick={() =>
 											pref.reset(["accentColour_dark"])
 										}

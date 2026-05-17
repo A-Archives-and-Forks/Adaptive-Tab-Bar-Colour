@@ -29,19 +29,6 @@ export default function RuleCard({
 			);
 	}, [rule?.header, rule?.headerType]);
 
-	const selectedOptionTitle = (() => {
-		switch (rule.type) {
-			case "COLOUR":
-				return i18n.t("specifyAColour");
-			case "THEME_COLOUR":
-				return i18n.t("useIgnoreThemeColour");
-			case "QUERY_SELECTOR":
-				return i18n.t("pickColourFromElement");
-			default:
-				return "";
-		}
-	})();
-
 	return (
 		<section className={clsx(styles.ruleCard, inPopup && styles.inPopup)}>
 			{!inPopup &&
@@ -51,7 +38,7 @@ export default function RuleCard({
 					<Input
 						value={rule.header}
 						placeholder={i18n.t("urlDomainOrRegex")}
-						warning={i18n.t("thisPolicyWillBeIgnored")}
+						warning={i18n.t("ruleWillBeIgnored")}
 						onChange={(newHeader) =>
 							onChange({ ...rule, header: newHeader })
 						}
@@ -59,7 +46,16 @@ export default function RuleCard({
 				))}
 			<select
 				value={rule.type}
-				title={selectedOptionTitle}
+				title={(() => {
+					switch (rule.type) {
+						case "COLOUR":
+							return i18n.t("specifyAColour");
+						case "THEME_COLOUR":
+							return i18n.t("useIgnoreThemeColour");
+						case "QUERY_SELECTOR":
+							return i18n.t("pickColourFromElement");
+					}
+				})()}
 				onChange={(e) => {
 					switch (e.target.value) {
 						case "COLOUR":

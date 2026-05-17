@@ -9,6 +9,8 @@
 	--unit-20: 1.5385rem;
 	--unit-32: 2.4608rem;
 
+	--radius: var(--unit-8);
+
 	--app-0: color-mix(in srgb, #000 5%, var(--app));
 	--app-1: color-mix(in srgb, #000 10%, var(--app));
 	--app-2: color-mix(in srgb, #000 15%, var(--app));
@@ -158,6 +160,13 @@ h2 {
 
 h3 {
 	font-weight: 700;
+}
+
+h4,
+h5,
+h6 {
+	color: var(--text-secondary);
+	font-size: 80%;
 }
 
 p {

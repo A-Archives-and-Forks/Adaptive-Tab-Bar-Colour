@@ -39,9 +39,9 @@ interface ReasonTextProps {
 function ReasonText({ reason, info }: ReasonTextProps) {
 	switch (reason) {
 		case "COLOUR_PICKED":
-			return i18n.t("colourPickedFromWebpage");
+			return i18n.t("usingColourFromWebpage");
 		case "COLOUR_SPECIFIED":
-			return i18n.t("colourIsSpecified");
+			return i18n.t("usingSpecifiedColour");
 		case "THEME_USED":
 			return i18n.t("usingThemeColour");
 		case "THEME_MISSING":
@@ -53,21 +53,21 @@ function ReasonText({ reason, info }: ReasonTextProps) {
 		case "QS_USED":
 			return (
 				<>
-					{i18n.t("colourIsPickedFrom")}
+					{i18n.t("usingColourFromElement")}
 					<strong>
 						<code>{info}</code>
 					</strong>
-					{i18n.t("colourIsPickedFromEnd")}
+					{i18n.t("usingColourFromElementEnd")}
 				</>
 			);
 		case "QS_FAILED":
 			return (
 				<>
-					{i18n.t("cannotFindElement")}
+					{i18n.t("couldNotFindElement")}
 					<strong>
 						<code>{info}</code>
 					</strong>
-					{i18n.t("cannotFindElementEnd")}
+					{i18n.t("couldNotFindElementEnd")}
 				</>
 			);
 		case "QS_ERROR":
@@ -105,17 +105,17 @@ function ReasonText({ reason, info }: ReasonTextProps) {
 				</>
 			);
 		case "HOME_PAGE":
-			return i18n.t("colourForHomePage");
+			return i18n.t("usingColourForHomePage");
 		case "PROTECTED_PAGE":
 			return i18n.t("pageIsProtected");
 		case "IMAGE_VIEWER":
 			return i18n.t("usingImageViewer");
 		case "PDF_VIEWER":
-			return i18n.t("colourForPDFViewer");
+			return i18n.t("usingColourForPDFViewer");
 		case "JSON_VIEWER":
-			return i18n.t("colourForJSONViewer");
+			return i18n.t("usingColourForJSONViewer");
 		case "TEXT_VIEWER":
-			return i18n.t("colourForPlainTextViewer");
+			return i18n.t("usingColourForPlainTextViewer");
 		case "FALLBACK_COLOUR":
 			return i18n.t("usingFallbackColour");
 		default:
