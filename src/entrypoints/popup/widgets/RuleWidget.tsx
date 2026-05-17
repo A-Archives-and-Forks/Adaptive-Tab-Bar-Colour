@@ -188,5 +188,46 @@ function RuleControls({ pref, ruleData, metaData }: RuleControlsProps) {
 				{i18n.t("addANewRule")}
 			</button>
 		);
+	} else if (metaData.reason === "HOME_PAGE") {
+		return (
+			<div className={styles.colourWrapper}>
+				<div>
+					<Colour
+						inPopup
+						value={pref.homeBackground_light}
+						onChange={(value) =>
+							(pref.homeBackground_light = value)
+						}
+					/>
+					<h4>
+						{i18n.t("inLightMode")}
+						<button
+							className={styles.resetButton}
+							title={i18n.t("reset")}
+							onClick={() => pref.reset(["homeBackground_light"])}
+						>
+							<Icon type="reset" size="text" />
+						</button>
+					</h4>
+				</div>
+				<div>
+					<Colour
+						inPopup
+						value={pref.homeBackground_dark}
+						onChange={(value) => (pref.homeBackground_dark = value)}
+					/>
+					<h4>
+						{i18n.t("inDarkMode")}
+						<button
+							className={styles.resetButton}
+							title={i18n.t("reset")}
+							onClick={() => pref.reset(["homeBackground_dark"])}
+						>
+							<Icon type="reset" size="text" />
+						</button>
+					</h4>
+				</div>
+			</div>
+		);
 	} else return null;
 }

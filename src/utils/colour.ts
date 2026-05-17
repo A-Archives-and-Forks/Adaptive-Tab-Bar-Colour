@@ -165,6 +165,19 @@ export default class colour {
 	}
 
 	/**
+	 * Randomises the colour.
+	 *
+	 * @returns {this} This instance.
+	 */
+	random(): this {
+		this.r = Math.floor(Math.random() * 256);
+		this.g = Math.floor(Math.random() * 256);
+		this.b = Math.floor(Math.random() * 256);
+		this.a = 1;
+		return this;
+	}
+
+	/**
 	 * Returns a new colour instance with its brightness adjusted by the
 	 * specified percentage.
 	 *

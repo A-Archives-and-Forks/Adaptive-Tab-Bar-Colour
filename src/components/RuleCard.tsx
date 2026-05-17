@@ -2,7 +2,7 @@ import clsx from "clsx";
 import styles from "./RuleCard.module.css";
 
 const defaultValue = {
-	COLOUR: "#000000",
+	COLOUR: new colour().random().toHex(),
 	THEME_COLOUR: true,
 	QUERY_SELECTOR: "",
 };
