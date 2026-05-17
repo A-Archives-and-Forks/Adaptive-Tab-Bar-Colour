@@ -9,7 +9,7 @@
 		outline-offset: calc(-1 * var(--unit));
 		border: none;
 		border-radius: var(--radius, var(--unit-12));
-		background-color: var(--control);
+		background-color: var(--app);
 		padding-inline: var(--unit-8);
 		width: 100%;
 		height: var(--unit-32);
@@ -17,13 +17,9 @@
 		line-height: 100%;
 		font-family: monospace;
 
-		&:hover {
-			background-color: var(--control-hover);
-		}
-
+		&:hover,
 		&:focus-visible {
-			outline: solid var(--unit) var(--control-hover);
-			background-color: transparent;
+			outline: solid var(--unit) var(--control);
 		}
 	}
 

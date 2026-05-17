@@ -48,6 +48,7 @@ export default function App() {
 					rel="noopener noreferrer"
 				>
 					{i18n.t("reportAnIssue")}
+					<Icon type="redirect" inline size="text" />
 				</a>
 			</footer>
 		</>

@@ -71,6 +71,7 @@
 
 		&:active {
 			transform: scale(0.98);
+			color: var(--text-secondary);
 		}
 	}
 }

@@ -102,6 +102,7 @@ main.advanced-tab {
 
 			&:active {
 				transform: scale(0.98);
+				color: inherit;
 			}
 		}
 	}
